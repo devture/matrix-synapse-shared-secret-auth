@@ -1,0 +1,141 @@
+# Shared Secret Authenticator password provider module for Matrix Synapse
+
+Shared Secret Authenticator is a password provider module that plugs into your [Matrix Synapse](https://github.com/matrix-org/synapse) homeserver.
+
+The goal is to allow an external system to send a specially-crafted login request to Matrix Synapse and be able to obtain login credentials for any user on the homeserver.
+
+This is useful when you want to manage the state of your Matrix server (and its users) from an external system.
+
+Example: you want your external system to auto-join a given user (`@user:example.com`) to some room. To do this, you need `@system:example.com` to invite `@user:example.com` to `!room:example.com` and then for the user to accept the invitation.
+
+To do these, your external system needs to be able to log in with both `@system:example.com` and `@user:example.com` and perform actions on their behalf. You can have pre-generated access tokens (or keep a plain-text password) lying around for each user, but that's prone to breakage:
+
+- a pre-generated access token is annoying to create and can get revoked by the user at any time, leaving your external system unable to do anything.
+
+- keeping a plain-text password for all your users is cumbersome and not a good way to do things. Passwords can also get changed by the user at any time, leaving your external system unable to do anything.
+
+This is where the Shared Secret Authenticator module comes to the rescue.
+
+
+## Installing
+
+If you're using the [matrix-docker-ansible-deploy](https://github.com/spantaleev/matrix-docker-ansible-deploy) Ansible playbook to install your homeserver and related services, you can also make it install this module too. See the [Setting up the Shared Secret Auth password provider module](https://github.com/spantaleev/matrix-docker-ansible-deploy/blob/master/docs/configuring-playbook-shared-secret-auth.md) documentation.
+
+If you'd like to install and configure this manually, make sure `shared_secret_authenticator.py` is on the Python path, somewhere where the Matrix Synapse server can find it.
+
+This would usually be something like `/usr/local/lib/python2.7/site-packages/shared_secret_authenticator.py`.
+
+
+## Configuring
+
+As the name suggests, you need a "shared secret" (between this Matrix Synapse module and your external system).
+
+You can generate a secure one with a command like this: `pwgen -s 128 1`.
+
+You then need to edit Matrix Synapse's configuration (`homeserver.yaml` file) and enable the new password provider:
+
+```yaml
+password_providers:
+  - module: "shared_secret_authenticator.SharedSecretAuthenticator"
+    config:
+      sharedSecret: "YOUR SHARED SECRET GOES HERE"
+```
+
+For additional logging information, you might want to edit Matrix Synapse's `.log.config` file as well, adding a new logger:
+
+```
+loggers:
+    # other stuff here
+
+    shared_secret_authenticator:
+        level: INFO
+```
+
+You need to restart Matrix Synapse for the module to start working.
+
+
+## Usage
+
+Once installed and configured, you can obtain an access token for any user on your homeserver.
+
+Example code (in Python):
+
+```python
+import json
+import hmac
+import hashlib
+import requests
+
+
+def obtain_access_token(user_id, homeserver_api_url, shared_secret):
+    login_api_url = homeserver_api_url + '/_matrix/client/r0/login'
+
+    password = hmac.new(shared_secret, user_id, hashlib.sha512).hexdigest()
+
+    payload = {
+        'type': 'm.login.password',
+        'user': user_id,
+        'password': password,
+    }
+
+    response = requests.post(login_api_url, data=json.dumps(payload))
+
+    return response.json()['access_token']
+
+
+user_id = "@a:example.com"
+homeserver_api_url = "https://matrix.example.com"
+shared_secret = "SECRET"
+
+access_token = obtain_access_token(user_id, homeserver_api_url, shared_secret)
+print(access_token)
+```
+
+Once your external system does its work with that accces token, it's best to clean up and revoke it (by hitting the appropriate `/logout` Matrix API routes).
+
+
+## FAQ
+
+### Can users still log in normally?
+
+Yes.
+
+This doesn't change the way normal log in happens.
+Users would normally be authenticated by Matrix Synapse's database and the password stored in there.
+
+This module merely provides an alternate way that a user (or rather, some system on behalf of the user) could log in.
+
+
+### Can this be used in conjunction with other password providers?
+
+Yes.
+
+Matrix Synapse will go through the list of `password_providers` and try each one in turn.
+It will stop only when it finds a password provider that successfully authenticates the user.
+
+Because this password provider only does things locally and upon a direct "password" hit and other password providers (like the [HTTP JSON REST Authenticator](https://github.com/kamax-io/matrix-synapse-rest-auth)) may perform additional (and slower) tasks, for performance reasons it's better to put this one first in the `password_providers` list.
+
+
+### This feels like an evil backdoor. Why would you do it?
+
+This is meant to be used by server admins for administrating their server - data that they already host and own.
+
+The easiest (and least intrusive) way to allow for such administration access is through such a special password provider.
+
+
+## How secure is this?
+
+It uses a shared secret and [HMAC](https://en.wikipedia.org/wiki/HMAC), so it should be secure.
+
+It doesn't use a nonce, so requests are replayable. The same request payload (user id + HMAC "password" combo) will always and forever authenticate you. That said, Matrix's `/login` endpoint suffers from the same deficiency by design (the same user id + password combo) will always and forever authenticate you.
+
+A future iteration of this module may put some timestamp information into the password value and reject requests from the past, thus making this even more secure.
+
+With all that said, to the best of our knowledge, using this module (even as it is now), doesn't introduce any realistic security concern. If you know better, we'd be happy to hear from you.
+
+
+## Support
+
+Matrix room: [#matrix-synapse-shared-secret-auth:devture.com](https://matrix.to/#/#matrix-synapse-shared-secret-auth:devture.com)
+
+Github issues: [devture/matrix-synapse-shared-secret-auth/issues](https://github.com/devture/matrix-synapse-shared-secret-auth/issues)
