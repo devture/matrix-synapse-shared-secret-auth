@@ -23,7 +23,7 @@ If you're using the [matrix-docker-ansible-deploy](https://github.com/spantaleev
 
 If you'd like to install and configure this manually, make sure `shared_secret_authenticator.py` is on the Python path, somewhere where the Matrix Synapse server can find it.
 
-This would usually be something like `/usr/local/lib/python2.7/site-packages/shared_secret_authenticator.py`.
+Easiest way is `pip install git+https://github.com/devture/matrix-synapse-shared-secret-auth` but you can also manually add it to a path like `/usr/local/lib/python2.7/site-packages/shared_secret_authenticator.py`.
 
 
 ## Configuring
