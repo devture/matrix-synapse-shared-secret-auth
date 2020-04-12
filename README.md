@@ -70,7 +70,7 @@ import requests
 def obtain_access_token(user_id, homeserver_api_url, shared_secret):
     login_api_url = homeserver_api_url + '/_matrix/client/r0/login'
 
-    password = hmac.new(shared_secret, user_id, hashlib.sha512).hexdigest()
+    password = hmac.new(shared_secret.encode('utf-8'), user_id.encode('utf-8'), hashlib.sha512).hexdigest()
 
     payload = {
         'type': 'm.login.password',
