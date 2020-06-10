@@ -21,7 +21,9 @@ This is where the Shared Secret Authenticator module comes to the rescue.
 
 If you're using the [matrix-docker-ansible-deploy](https://github.com/spantaleev/matrix-docker-ansible-deploy) Ansible playbook to install your homeserver and related services, you can also make it install this module too. See the [Setting up the Shared Secret Auth password provider module](https://github.com/spantaleev/matrix-docker-ansible-deploy/blob/master/docs/configuring-playbook-shared-secret-auth.md) documentation.
 
-If you'd like to install and configure this manually, make sure `shared_secret_authenticator.py` is on the Python path, somewhere where the Matrix Synapse server can find it.
+On [Archlinux](https://www.archlinux.org/), you can install one of these [AUR](https://wiki.archlinux.org/index.php/Arch_User_Repository) packages: [python-matrix-synapse-shared-secret-auth](https://aur.archlinux.org/packages/python-matrix-synapse-shared-secret-auth/) (latest tagged release) or [python-matrix-synapse-shared-secret-auth-git](https://aur.archlinux.org/packages/python-matrix-synapse-shared-secret-auth-git/).
+
+To install and configure this manually, make sure `shared_secret_authenticator.py` is on the Python path, somewhere where the Matrix Synapse server can find it.
 
 Easiest way is `pip install git+https://github.com/devture/matrix-synapse-shared-secret-auth` but you can also manually add it to a path like `/usr/local/lib/python3.7/site-packages/shared_secret_authenticator.py`.
 
