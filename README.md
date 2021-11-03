@@ -4,7 +4,10 @@ Shared Secret Authenticator is a password provider module that plugs into your [
 
 The goal is to allow an external system to send a specially-crafted login request to Matrix Synapse and be able to obtain login credentials for any user on the homeserver.
 
-This is useful when you want to manage the state of your Matrix server (and its users) from an external system.
+This is useful when you want to:
+
+- use a bridge to another chat network which does double-puppeting and may need to impersonate your users from time to time
+- manage the state of your Matrix server (and its users) from an external system (your own custom code or via a tool like [matrix-corporal](https://github.com/devture/matrix-corporal))
 
 Example: you want your external system to auto-join a given user (`@user:example.com`) to some room. To do this, you need `@system:example.com` to invite `@user:example.com` to `!room:example.com` and then for the user to accept the invitation.
 
@@ -25,7 +28,7 @@ On [Archlinux](https://www.archlinux.org/), you can install one of these [AUR](h
 
 To install and configure this manually, make sure `shared_secret_authenticator.py` is on the Python path, somewhere where the Matrix Synapse server can find it.
 
-The easiest way is `pip install git+https://github.com/devture/matrix-synapse-shared-secret-auth` but you can also manually download `shared_secret_authenticator.py` from this repo to a path like `/usr/local/lib/python3.7/site-packages/shared_secret_authenticator.py`.
+The easiest way is `pip install git+https://github.com/devture/matrix-synapse-shared-secret-auth` but you can also manually download `shared_secret_authenticator.py` from this repo to a path like `/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py`.
 
 Some distribution packages (such as the Debian packages from `matrix.org`) may use an isolated virtual environment, so you will need to install the library there. Any environments should be referenced in your init system - for example, the `matrix.org` Debian package creates a systemd init file at `/lib/systemd/system/matrix-synapse.service` that executes python from `/opt/venvs/matrix-synapse`.
 
@@ -36,14 +39,24 @@ As the name suggests, you need a "shared secret" (between this Matrix Synapse mo
 
 You can generate a secure one with a command like this: `pwgen -s 128 1`.
 
-You then need to edit Matrix Synapse's configuration (`homeserver.yaml` file) and enable the new password provider:
+You then need to edit Matrix Synapse's configuration (`homeserver.yaml` file) and enable the module:
 
 ```yaml
-password_providers:
-  - module: "shared_secret_authenticator.SharedSecretAuthenticator"
-    config:
-      sharedSecret: "YOUR SHARED SECRET GOES HERE"
+modules:
+    - module: shared_secret_authenticator.SharedSecretAuthProvider
+      config:
+          shared_secret: "YOUR SHARED SECRET GOES HERE"
+          # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
+          # Below, we explicitly enable support for the old `m.login.password` login type,
+          # which was used in v1 of matrix-synapse-shared-secret-auth and still widely supported by external software.
+          # If you don't need such legacy support, consider setting this to `false` or omitting it entirely.
+          m_login_password_support_enabled: true
 ```
+
+This uses the new **module** API (and `module` configuration key in `homeserver.yaml`), which added support for "password providers" in [Synapse v1.46.0](https://github.com/matrix-org/synapse/releases/tag/v1.46.0) (released on 2021-11-02). If you're running an older version of Synapse or need to use the old `password_providers` API, install an older version of matrix-synapse-sshared-secret-auth (`1.*` or the `v1-stable` branch).
+
+The `m_login_password_support_enabled` configuration key enables support for the [`m.login.password`](https://matrix.org/docs/spec/client_server/r0.6.1#password-based) authentication type (the default that we used in **v1** of matrix-synapse-sshared-secret-auth).
+In **v2** we don't
 
 For additional logging information, you might want to edit Matrix Synapse's `.log.config` file as well, adding a new logger:
 
@@ -71,16 +84,31 @@ import hashlib
 import requests
 
 
-def obtain_access_token(user_id, homeserver_api_url, shared_secret):
+def obtain_access_token(full_user_id, homeserver_api_url, shared_secret):
     login_api_url = homeserver_api_url + '/_matrix/client/r0/login'
 
-    password = hmac.new(shared_secret.encode('utf-8'), user_id.encode('utf-8'), hashlib.sha512).hexdigest()
+    token = hmac.new(shared_secret.encode('utf-8'), full_user_id.encode('utf-8'), hashlib.sha512).hexdigest()
 
     payload = {
-        'type': 'm.login.password',
-        'user': user_id,
-        'password': password,
+        'type': 'com.devture.shared_secret_auth',
+        'identifier': {
+          'type': 'm.id.user',
+          'user': full_user_id,
+        },
+        'token': token,
     }
+
+    # If `m_login_password_support_enabled`, you can use `m.login.password`.
+    # The token goes into the `password` field for this login type, not the `token` field.
+    #
+    # payload = {
+    #     'type': 'm.login.password',
+    #     'identifier': {
+    #       'type': 'm.id.user',
+    #       'user': full_user_id,
+    #     },
+    #     'password': token,
+    # }
 
     response = requests.post(login_api_url, data=json.dumps(payload))
 
@@ -107,17 +135,21 @@ Yes.
 This doesn't change the way normal log in happens.
 Users would normally be authenticated by Matrix Synapse's database and the password stored in there.
 
-This module merely provides an alternate way that a user (or rather, some system on behalf of the user) could log in.
+This module merely provides an alternate way (a new `com.devture.shared_secret_auth` login type) that a user (or rather, some system on behalf of the user) could use to log in. It's completely separate from the other login flows (like `m.login.password`).
+
+If you've enabled the old `m.login.password` login type via the `m_login_password_support_enabled` configuration setting (defaults to `false`, disabled) then this login type also gets handled. All regular password logins pass through this authentication module, and should they fail to complete, continue on their way to Synapse.
 
 
 ### Can this be used in conjunction with other password providers?
 
 Yes.
 
-Matrix Synapse will go through the list of `password_providers` and try each one in turn.
+Matrix Synapse will go through the list of password provider modules and try each matching one in turn.
 It will stop only when it finds a password provider that successfully authenticates the user.
 
-Because this password provider only does things locally and upon a direct "password" hit and other password providers (like the [HTTP JSON REST Authenticator](https://github.com/kamax-io/matrix-synapse-rest-auth)) may perform additional (and slower) tasks, for performance reasons it's better to put this one first in the `password_providers` list.
+Because this password provider only does things locally and upon a direct "password" hit and other password providers (like the [HTTP JSON REST Authenticator](https://github.com/kamax-io/matrix-synapse-rest-auth)) may perform additional (and slower) tasks, for performance reasons it's better to put this one first in the `modules` list.
+
+If you don't require backward compatibility (`m.login.password` support), we also suggest not enabling support for this login type (set `m_login_password_support_enabled` to `false` or skip this configuration option), which will improve performance.
 
 
 ### This feels like an evil backdoor. Why would you do it?
