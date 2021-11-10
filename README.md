@@ -45,7 +45,7 @@ You then need to edit Matrix Synapse's configuration (`homeserver.yaml` file) an
 modules:
     - module: shared_secret_authenticator.SharedSecretAuthProvider
       config:
-          shared_secret: "YOUR SHARED SECRET GOES HERE"
+          shared_secret: "YOUR_SHARED_SECRET_GOES_HERE"
           # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
           # Below, we explicitly enable support for the old `m.login.password` login type,
           # which was used in v1 of matrix-synapse-shared-secret-auth and still widely supported by external software.
