@@ -33,7 +33,7 @@ class SharedSecretAuthProvider:
     def __init__(self, config: dict, api: module_api):
         for k in ('shared_secret',):
             if k not in config:
-                raise Error('Required `{0}` configuration key not found'.format(k))
+                raise KeyError('Required `{0}` configuration key not found'.format(k))
 
         m_login_password_support_enabled = bool(config['m_login_password_support_enabled']) if 'm_login_password_support_enabled' in config else False
 
