@@ -32,6 +32,15 @@ The easiest way is `pip install git+https://github.com/devture/matrix-synapse-sh
 
 Some distribution packages (such as the Debian packages from `matrix.org`) may use an isolated virtual environment, so you will need to install the library there. Any environments should be referenced in your init system - for example, the `matrix.org` Debian package creates a systemd init file at `/lib/systemd/system/matrix-synapse.service` that executes python from `/opt/venvs/matrix-synapse`.
 
+This also extends to the Matrix Synapse [docker image](https://hub.docker.com/r/matrixdotorg/synapse/#!). You can manually download and mount the python script using a docker volume.
+
+```yaml
+  matrix:
+    image: matrixdotorg/synapse:latest
+    volumes:
+     - ./shared_secret_authenticator.py:/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py
+     ...
+```
 
 ## Configuring
 
