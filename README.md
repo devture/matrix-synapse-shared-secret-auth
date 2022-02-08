@@ -32,7 +32,21 @@ The easiest way is `pip install git+https://github.com/devture/matrix-synapse-sh
 
 Some distribution packages (such as the Debian packages from `matrix.org`) may use an isolated virtual environment, so you will need to install the library there. Any environments should be referenced in your init system - for example, the `matrix.org` Debian package creates a systemd init file at `/lib/systemd/system/matrix-synapse.service` that executes python from `/opt/venvs/matrix-synapse`.
 
-This also extends to the Matrix Synapse [docker image](https://hub.docker.com/r/matrixdotorg/synapse/#!). You can manually download and mount the python script using a docker volume.
+Once installed, you can proceed to [Configuring](#configuring).
+
+
+### Using with Synapse running in a container
+
+To use it with [Synapse](https://github.com/matrix-org/synapse) running in a container (for example, using the [matrixdotorg/synapse container image](https://hub.docker.com/r/matrixdotorg/synapse)), download the `shared_secret_authenticator.py` script from this repository and mount it into the container at a path like `/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py`.
+
+If you're using `docker run` (`podman run`, etc.) to start your container, simply add `--mount type=bind,src=/HOST/PATH/TO/shared_secret_authenticator.py,dst=/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py` (or `-v /HOST/PATH/TO/shared_secret_authenticator.py:/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py`).
+
+Once installed, you can proceed to [Configuring](#configuring).
+
+
+### Using with Synapse running under docker-compose
+
+If you're using [docker-compose](https://docs.docker.com/compose/) to start the [Synapse](https://github.com/matrix-org/synapse) container, download the `shared_secret_authenticator.py` script from this repository and mount it into the container using a `volume` definition like this:
 
 ```yaml
   matrix:
@@ -41,6 +55,9 @@ This also extends to the Matrix Synapse [docker image](https://hub.docker.com/r/
      - ./shared_secret_authenticator.py:/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py
      ...
 ```
+
+Once installed, you can proceed to [Configuring](#configuring).
+
 
 ## Configuring
 
