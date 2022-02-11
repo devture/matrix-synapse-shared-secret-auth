@@ -81,8 +81,7 @@ modules:
 
 This uses the new **module** API (and `module` configuration key in `homeserver.yaml`), which added support for "password providers" in [Synapse v1.46.0](https://github.com/matrix-org/synapse/releases/tag/v1.46.0) (released on 2021-11-02). If you're running an older version of Synapse or need to use the old `password_providers` API, install an older version of matrix-synapse-sshared-secret-auth (`1.*` or the `v1-stable` branch).
 
-The `m_login_password_support_enabled` configuration key enables support for the [`m.login.password`](https://matrix.org/docs/spec/client_server/r0.6.1#password-based) authentication type (the default that we used in **v1** of matrix-synapse-sshared-secret-auth).
-In **v2** we don't
+The `m_login_password_support_enabled` configuration key enables support for the [`m.login.password`](https://matrix.org/docs/spec/client_server/r0.6.1#password-based) authentication type (the default that we used in **v1** of matrix-synapse-shared-secret-auth).
 
 For additional logging information, you might want to edit Matrix Synapse's `.log.config` file as well, adding a new logger:
 
