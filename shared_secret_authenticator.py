@@ -36,16 +36,22 @@ class SharedSecretAuthProvider:
                 raise KeyError('Required `{0}` configuration key not found'.format(k))
 
         m_login_password_support_enabled = bool(config['m_login_password_support_enabled']) if 'm_login_password_support_enabled' in config else False
+        com_devture_shared_secret_auth_support_enabled = bool(config['com_devture_shared_secret_auth_support_enabled']) if 'com_devture_shared_secret_auth_support_enabled' in config else True
 
         self.api = api
         self.shared_secret = config['shared_secret']
 
         auth_checkers: Optional[Dict[Tuple[str, Tuple], CHECK_AUTH_CALLBACK]] = {}
-        auth_checkers[("com.devture.shared_secret_auth", ("token",))] = self.check_com_devture_shared_secret_auth
+        if com_devture_shared_secret_auth_support_enabled:
+            auth_checkers[("com.devture.shared_secret_auth", ("token",))] = self.check_com_devture_shared_secret_auth
         if m_login_password_support_enabled:
             auth_checkers[("m.login.password", ("password",))] = self.check_m_login_password
 
         enabled_login_types = [k[0] for k in auth_checkers]
+
+        if len(enabled_login_types) == 0:
+            raise RuntimeError('At least one login type must be enabled')
+
         logger.info('Enabled login types: %s', enabled_login_types)
 
         api.register_password_auth_provider_callbacks(

@@ -72,16 +72,29 @@ modules:
     - module: shared_secret_authenticator.SharedSecretAuthProvider
       config:
           shared_secret: "YOUR_SHARED_SECRET_GOES_HERE"
+
           # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
           # Below, we explicitly enable support for the old `m.login.password` login type,
           # which was used in v1 of matrix-synapse-shared-secret-auth and still widely supported by external software.
           # If you don't need such legacy support, consider setting this to `false` or omitting it entirely.
           m_login_password_support_enabled: true
+
+          # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
+          # Advertising support for such an authentication type causes a problem with Element, however.
+          # See: https://github.com/vector-im/element-web/issues/19605
+          #
+          # Uncomment the line below to disable `com.devture.shared_secret_auth` support.
+          # You will then need to:
+          # - have `m_login_password_support_enabled: true` to enable the `m.login.password` login type
+          # - authenticate using `m.login.password` requests, instead of ``com.devture.shared_secret_auth` requests
+          # com_devture_shared_secret_auth_support_enabled: false
 ```
 
 This uses the new **module** API (and `module` configuration key in `homeserver.yaml`), which added support for "password providers" in [Synapse v1.46.0](https://github.com/matrix-org/synapse/releases/tag/v1.46.0) (released on 2021-11-02). If you're running an older version of Synapse or need to use the old `password_providers` API, install an older version of matrix-synapse-sshared-secret-auth (`1.*` or the `v1-stable` branch).
 
 The `m_login_password_support_enabled` configuration key enables support for the [`m.login.password`](https://matrix.org/docs/spec/client_server/r0.6.1#password-based) authentication type (the default that we used in **v1** of matrix-synapse-shared-secret-auth).
+
+The `com_devture_shared_secret_auth_support_enabled` configuration key (having a `true` default value) can be used to disable our custom `com.devture.shared_secret_auth` authentication type. If you disable it, you will need to enable and use `m.login.password` login requests (see `m_login_password_support_enabled`).
 
 For additional logging information, you might want to edit Matrix Synapse's `.log.config` file as well, adding a new logger:
 
