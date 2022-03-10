@@ -28,7 +28,7 @@ On [Archlinux](https://www.archlinux.org/), you can install one of these [AUR](h
 
 To install and configure this manually, make sure `shared_secret_authenticator.py` is on the Python path, somewhere where the Matrix Synapse server can find it.
 
-The easiest way is `pip install git+https://github.com/devture/matrix-synapse-shared-secret-auth` but you can also manually download `shared_secret_authenticator.py` from this repo to a path like `/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py`.
+The easiest way is `pip install git+https://github.com/devture/matrix-synapse-shared-secret-auth` but you can also manually download `shared_secret_authenticator.py` from this repo to a path like `/usr/local/lib/python3.XXX/site-packages/shared_secret_authenticator.py` (adjust the `3.XXX` part of the path to match your Python version - e.g. `3.10`).
 
 Some distribution packages (such as the Debian packages from `matrix.org`) may use an isolated virtual environment, so you will need to install the library there. Any environments should be referenced in your init system - for example, the `matrix.org` Debian package creates a systemd init file at `/lib/systemd/system/matrix-synapse.service` that executes python from `/opt/venvs/matrix-synapse`.
 
@@ -37,9 +37,9 @@ Once installed, you can proceed to [Configuring](#configuring).
 
 ### Using with Synapse running in a container
 
-To use it with [Synapse](https://github.com/matrix-org/synapse) running in a container (for example, using the [matrixdotorg/synapse container image](https://hub.docker.com/r/matrixdotorg/synapse)), download the `shared_secret_authenticator.py` script from this repository and mount it into the container at a path like `/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py`.
+To use it with [Synapse](https://github.com/matrix-org/synapse) running in a container (for example, using the [matrixdotorg/synapse container image](https://hub.docker.com/r/matrixdotorg/synapse)), download the `shared_secret_authenticator.py` script from this repository and mount it into the container at a path like `/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py`.
 
-If you're using `docker run` (`podman run`, etc.) to start your container, simply add `--mount type=bind,src=/HOST/PATH/TO/shared_secret_authenticator.py,dst=/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py` (or `-v /HOST/PATH/TO/shared_secret_authenticator.py:/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py`).
+If you're using `docker run` (`podman run`, etc.) to start your container, simply add `--mount type=bind,src=/HOST/PATH/TO/shared_secret_authenticator.py,dst=/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py` (or `-v /HOST/PATH/TO/shared_secret_authenticator.py:/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py`).
 
 Once installed, you can proceed to [Configuring](#configuring).
 
