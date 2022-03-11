@@ -52,7 +52,7 @@ If you're using [docker-compose](https://docs.docker.com/compose/) to start the 
   matrix:
     image: matrixdotorg/synapse:latest
     volumes:
-     - ./shared_secret_authenticator.py:/usr/local/lib/python3.8/site-packages/shared_secret_authenticator.py
+     - ./shared_secret_authenticator.py:/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py
      ...
 ```
 
