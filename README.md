@@ -37,9 +37,9 @@ Once installed, you can proceed to [Configuring](#configuring).
 
 ### Using with Synapse running in a container
 
-To use it with [Synapse](https://github.com/matrix-org/synapse) running in a container (for example, using the [matrixdotorg/synapse container image](https://hub.docker.com/r/matrixdotorg/synapse)), download the `shared_secret_authenticator.py` script from this repository and mount it into the container at a path like `/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py`.
+To use it with [Synapse](https://github.com/matrix-org/synapse) running in a container (for example, using the [matrixdotorg/synapse container image](https://hub.docker.com/r/matrixdotorg/synapse)), download the `shared_secret_authenticator.py` script from this repository and mount it into the container at a path like `/usr/local/lib/python3.11/site-packages/shared_secret_authenticator.py`.
 
-If you're using `docker run` (`podman run`, etc.) to start your container, simply add `--mount type=bind,src=/HOST/PATH/TO/shared_secret_authenticator.py,dst=/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py` (or `-v /HOST/PATH/TO/shared_secret_authenticator.py:/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py`).
+If you're using `docker run` (`podman run`, etc.) to start your container, simply add `--mount type=bind,src=/HOST/PATH/TO/shared_secret_authenticator.py,dst=/usr/local/lib/python3.11/site-packages/shared_secret_authenticator.py` (or `-v /HOST/PATH/TO/shared_secret_authenticator.py:/usr/local/lib/python3.11/site-packages/shared_secret_authenticator.py`).
 
 Once installed, you can proceed to [Configuring](#configuring).
 
@@ -52,7 +52,7 @@ If you're using [docker-compose](https://docs.docker.com/compose/) to start the 
   matrix:
     image: matrixdotorg/synapse:latest
     volumes:
-     - ./shared_secret_authenticator.py:/usr/local/lib/python3.9/site-packages/shared_secret_authenticator.py
+     - ./shared_secret_authenticator.py:/usr/local/lib/python3.11/site-packages/shared_secret_authenticator.py
      ...
 ```
 
