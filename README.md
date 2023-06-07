@@ -80,8 +80,6 @@ modules:
           m_login_password_support_enabled: true
 
           # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
-          # Advertising support for such an authentication type causes a problem with Element, however.
-          # See: https://github.com/vector-im/element-web/issues/19605
           #
           # Uncomment the line below to disable `com.devture.shared_secret_auth` support.
           # You will then need to:
