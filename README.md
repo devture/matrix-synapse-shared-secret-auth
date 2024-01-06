@@ -194,6 +194,9 @@ This is meant to be used by server admins for administrating their server - data
 
 The easiest (and least intrusive) way to allow for such administration access is through such a special password provider.
 
+Gaining a login session (as any user on the server) does not give the server admin access to anything they can't already access by inspecting the database manually.
+Thanks to E2EE, messages in encrypted rooms remains private no matter how the server admin tries to read them.
+
 
 ## How secure is this?
 
